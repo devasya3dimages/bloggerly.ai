@@ -26,3 +26,9 @@ Voice: `python3 vo.py am_michael` (speed 1.3).
    ducks the music under it and writes `mix.wav` (needs `scipy`).
 4. `FILM=film_fast.html node rec.js 1080 1080 out.mp4`, then mux:
    `ffmpeg -i out.mp4 -i audio/mix.wav -map 0:v -map 1:a -c:v copy -af loudnorm=I=-10.5:TP=-2,alimiter=limit=0.8 -c:a aac -shortest final.mp4`
+
+## v5: hype-reel music, cut on the beat (31 s)
+
+`film_beat.html` is `film.html` re-timed so each scene starts on a bar of the 140 BPM track in `../hype/music.py`.
+"The Solution" lands on the drop (bar 4), the stats on the buzzer (bar 8), and the logo on the impact (bar 16).
+`FILM=film_beat.html node rec.js 1080 1920 out.mp4`, then mux with the mastered `hype/music.wav`.
