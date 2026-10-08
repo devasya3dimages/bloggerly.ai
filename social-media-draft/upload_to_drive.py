@@ -8,19 +8,27 @@ Credentials (environment variables, set in the cloud environment's settings, nev
 
 Usage: python3 upload_to_drive.py [FOLDER_ID]
 """
-import json, mimetypes, os, sys, urllib.parse, urllib.request
+import json, mimetypes, os, re, sys, urllib.error, urllib.parse, urllib.request
 
 ROOT_FOLDER = sys.argv[1] if len(sys.argv) > 1 else "18ZIgQCLbSlKLZef4JXJ8l6tUdwNcqzHY"
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
+def env(name):  # tolerate values pasted with quotes, commas or braces around them
+    return os.environ[name].strip().strip('{}",\' ').strip()
+
+
 def token():
+    secret = re.search(r"GOCSPX-[A-Za-z0-9_-]+", os.environ["GOOGLE_OAUTH_CLIENT_SECRET"])
     data = urllib.parse.urlencode({
-        "client_id": os.environ["GOOGLE_OAUTH_CLIENT_ID"],
-        "client_secret": os.environ["GOOGLE_OAUTH_CLIENT_SECRET"],
-        "refresh_token": os.environ["GOOGLE_OAUTH_REFRESH_TOKEN"],
+        "client_id": env("GOOGLE_OAUTH_CLIENT_ID"),
+        "client_secret": secret.group(0) if secret else env("GOOGLE_OAUTH_CLIENT_SECRET"),
+        "refresh_token": env("GOOGLE_OAUTH_REFRESH_TOKEN"),
         "grant_type": "refresh_token"}).encode()
-    return json.load(urllib.request.urlopen("https://oauth2.googleapis.com/token", data))["access_token"]
+    try:
+        return json.load(urllib.request.urlopen("https://oauth2.googleapis.com/token", data))["access_token"]
+    except urllib.error.HTTPError as e:
+        sys.exit(f"Google sign-in failed: {json.load(e).get('error_description') or e.code}")
 
 
 TOKEN = token()
