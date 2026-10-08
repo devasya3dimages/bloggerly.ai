@@ -1,7 +1,7 @@
 import re, json
 vo = json.load(open('audio/vo.json'))['dur']
 OLD = [0, 3, 7.2, 11.4, 13.4, 17.6, 21.8, 26, 31, 34.4, 40]
-PAD = [1.0, 0.45, 0.35, 0.35, 0.65, 0.5, 0.5, 0.75, 0.6, 1.4]
+PAD = [0.8, 0.3, 0.25, 0.25, 0.5, 0.35, 0.35, 0.6, 0.45, 1.2]
 new = [0.0]
 for d, p in zip(vo, PAD): new.append(round(new[-1] + d + p, 3))
 def seg(t):
@@ -24,5 +24,5 @@ def fix(m):
 s = re.sub(r'<(div|span)[^>]*data-in="[^>]*>', fix, s)
 s = s.replace('const DUR = 40;', f'const DUR = {new[-1]};')
 open('film_fast.html', 'w').write(s)
-json.dump({'scenes': new, 'vo_start': [round(n + (0.35 if i else 0.45), 3) for i, n in enumerate(new[:-1])]}, open('timeline.json', 'w'))
+json.dump({'scenes': new, 'vo_start': [round(n + (0.25 if i else 0.35), 3) for i, n in enumerate(new[:-1])]}, open('timeline.json', 'w'))
 print(new)

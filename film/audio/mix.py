@@ -1,4 +1,4 @@
-"""Synthesize a minimal tech-ambient bed at 120 BPM, lay the voiceover on the timeline, duck music under voice."""
+"""Synthesize a fast, drum-led 128 BPM bed, lay the voiceover on the timeline, light ducking, loud master."""
 import json
 import numpy as np
 import soundfile as sf
@@ -6,88 +6,117 @@ from scipy.signal import butter, sosfilt, resample_poly
 
 SR = 48000
 tl = json.load(open("../timeline.json"))
-vo = json.load(open("vo.json"))
 DUR = tl["scenes"][-1]
 N = int(DUR * SR)
 t = np.arange(N) / SR
 rng = np.random.default_rng(7)
-BEAT = 0.5
+BPM = 128
+BEAT = 60 / BPM
+DROP = tl["scenes"][1]                  # drums hit when the first scene after the logo starts
+END = tl["scenes"][-2] + 2.6            # final logo impact
+STOP = END                              # beat stops for the impact
 
-def lp(x, f): return sosfilt(butter(2, f, "low", fs=SR, output="sos"), x)
-def hp(x, f): return sosfilt(butter(2, f, "high", fs=SR, output="sos"), x)
+def filt(x, f, kind): return sosfilt(butter(2, f, kind, fs=SR, output="sos"), x)
 def note(m): return 440 * 2 ** ((m - 69) / 12)
+def put(buf, at, s, g=1.0):
+    i = int(at * SR)
+    if 0 <= i < N: buf[i:i + len(s)] += s[: N - i] * g
 
-music = np.zeros(N)
-# pad: Am F C G, 2 bars each, detuned saws through a slowly opening low-pass
-chords = [[57, 60, 64, 69], [53, 57, 60, 65], [48, 55, 60, 64], [55, 59, 62, 67]]
-pad = np.zeros(N)
-for ci in range(int(DUR / 4) + 1):
-    ch = chords[ci % 4]; a, b = int(ci * 4 * SR), min(int((ci + 1) * 4 * SR + 0.3 * SR), N)
-    if a >= N: break
-    tt = np.arange(b - a) / SR
-    seg = sum(((tt * note(m) * d) % 1 * 2 - 1) for m in ch for d in (0.997, 1.003))
-    env = np.minimum(1, tt / 0.6) * np.minimum(1, (len(tt) / SR - tt) / 0.3)
-    pad[a:b] += seg * env
-pad = lp(pad, 900) * 0.022
-music += pad
+def grid(start, stop, step):  # beat-aligned times from the drop
+    return [DROP + k * step for k in range(int((stop - DROP) / step) + 1) if start <= DROP + k * step < stop]
 
-# sub kick on every beat from 1.9 s (after the logo), soft
-kick = np.zeros(N)
-kt = np.arange(int(0.35 * SR)) / SR
-k1 = np.sin(2 * np.pi * (45 * kt + 60 * (1 - np.exp(-kt * 30)) / 30)) * np.exp(-kt * 9)
-for bt in np.arange(1.9, DUR - 1.6, BEAT):
-    i = int(bt * SR); kick[i:i + len(k1)] += k1[: N - i]
-music += kick * 0.33
+drums = np.zeros(N); synth = np.zeros(N)
 
-# off-beat hats
-hat = hp(rng.normal(0, 1, int(0.05 * SR)), 7000) * np.exp(-np.arange(int(0.05 * SR)) / SR * 80)
-for bt in np.arange(1.9 + BEAT / 2, DUR - 1.6, BEAT):
-    i = int(bt * SR); music[i:i + len(hat)] += hat[: N - i] * 0.05
+# kick: pitch-swept sine + click
+kt = np.arange(int(0.32 * SR)) / SR
+kick = np.sin(2 * np.pi * (48 * kt + 110 * (1 - np.exp(-kt * 38)) / 38)) * np.exp(-kt * 10)
+kick[: int(0.004 * SR)] += filt(rng.normal(0, 1, int(0.004 * SR)), 2000, "high") * 0.6
+kick = np.tanh(kick * 1.8)
+for b in grid(DROP, STOP, BEAT): put(drums, b, kick, 1.0)
 
-# plucked 8th-note arp
-arp = np.zeros(N); pt = np.arange(int(0.4 * SR)) / SR
-for j, bt in enumerate(np.arange(3.0, DUR - 1.6, BEAT / 2)):
-    ch = chords[int(bt / 4) % 4]; m = ch[[0, 2, 1, 3, 2, 1, 3, 2][j % 8]] + 12
-    s = (np.sin(2 * np.pi * note(m) * pt) + 0.3 * np.sin(4 * np.pi * note(m) * pt)) * np.exp(-pt * 11)
-    i = int(bt * SR); arp[i:i + len(s)] += s[: N - i]
-music += lp(arp, 3500) * 0.045
+# clap/snare on 2 and 4: layered noise bursts + body tone
+st = np.arange(int(0.22 * SR)) / SR
+noise = filt(filt(rng.normal(0, 1, len(st)), 900, "high"), 7000, "low")
+snare = noise * np.exp(-st * 16) + 0.5 * np.sin(2 * np.pi * 190 * st) * np.exp(-st * 30)
+clap = np.zeros(len(st))
+for off in (0, 0.011, 0.022): clap[int(off * SR):] += noise[: len(st) - int(off * SR)] * np.exp(-st[: len(st) - int(off * SR)] * 60) * 0.6
+sn = (snare + clap) * 0.55
+for b in grid(DROP + BEAT, STOP, 2 * BEAT): put(drums, b, sn)
 
-# whooshes into each scene change + impact on the final logo
-for sc in tl["scenes"][1:-1]:
-    L = int(0.45 * SR); a = int(sc * SR) - L
-    if a < 0: continue
-    w = np.linspace(0, 1, L) ** 2
-    music[a:a + L] += hp(rng.normal(0, 1, L), 1500) * w * 0.035
-logo_t = tl["scenes"][-2] + 2.75
-it = np.arange(int(1.8 * SR)) / SR
-boom = np.sin(2 * np.pi * (38 * it + 50 * (1 - np.exp(-it * 12)) / 12)) * np.exp(-it * 2.6) * 0.5 + lp(rng.normal(0, 1, len(it)), 2000) * np.exp(-it * 10) * 0.08
-i = int(logo_t * SR); music[i:i + len(boom)] += boom[: N - i]
+# 16th hats, open hat on the off-beat
+ht = np.arange(int(0.04 * SR)) / SR
+chh = filt(rng.normal(0, 1, len(ht)), 8000, "high") * np.exp(-ht * 90)
+ot = np.arange(int(0.18 * SR)) / SR
+ohh = filt(rng.normal(0, 1, len(ot)), 7000, "high") * np.exp(-ot * 18)
+for j, b in enumerate(grid(DROP, STOP, BEAT / 4)):
+    put(drums, b, chh, 0.16 if j % 2 else 0.24)
+for b in grid(DROP + BEAT / 2, STOP, BEAT): put(drums, b, ohh, 0.13)
 
-# fade
-music *= np.minimum(1, t / 0.8) * np.minimum(1, (DUR - t) / 1.2)
+# snare roll build into the close + crash at the drop
+roll_start = tl["scenes"][-2] - 2 * BEAT * 2
+for j, b in enumerate(np.arange(roll_start, tl["scenes"][-2], BEAT / 4)):
+    put(drums, b, sn, 0.25 + 0.5 * j / 16)
+ct = np.arange(int(1.6 * SR)) / SR
+crash = filt(rng.normal(0, 1, len(ct)), 4000, "high") * np.exp(-ct * 2.5) * 0.35
+put(drums, DROP, crash); put(drums, tl["scenes"][-2], crash)
+
+# riser over the logo intro
+L = int(DROP * SR)
+rise = filt(rng.normal(0, 1, L), 1200, "high") * np.linspace(0, 1, L) ** 2.5 * 0.25
+drums[:L] += rise
+
+# bass: 8th-note saw following roots, side-chain pumped
+chords = [[57, 60, 64], [53, 57, 60], [48, 55, 60], [55, 59, 62]]  # Am F C G
+bar = 4 * BEAT
+bass = np.zeros(N); bt8 = np.arange(int(BEAT / 2 * SR)) / SR
+for b in grid(DROP, STOP, BEAT / 2):
+    root = chords[int((b - DROP) / (2 * bar)) % 4][0] - 24
+    s = ((bt8 * note(root)) % 1 * 2 - 1) * np.exp(-bt8 * 5)
+    put(bass, b, s)
+synth += filt(bass, 380, "low") * 0.5
+
+# stab chords on the off-beat + 16th arp
+stt = np.arange(int(0.18 * SR)) / SR
+for b in grid(DROP + BEAT / 2, STOP, BEAT):
+    ch = chords[int((b - DROP) / (2 * bar)) % 4]
+    s = sum(((stt * note(m + 12) * d) % 1 * 2 - 1) for m in ch for d in (0.996, 1.004)) * np.exp(-stt * 14)
+    put(synth, b, filt(s, 2600, "low"), 0.05)
+at = np.arange(int(0.2 * SR)) / SR
+for j, b in enumerate(grid(DROP, STOP, BEAT / 4)):
+    ch = chords[int((b - DROP) / (2 * bar)) % 4]; m = ch[[0, 1, 2, 1][j % 4]] + 24
+    put(synth, b, np.sin(2 * np.pi * note(m) * at) * np.exp(-at * 22), 0.05)
+
+# sidechain pump on synths from the kick
+pump = np.ones(N)
+pt = np.arange(int(BEAT * SR)) / SR
+shape = 1 - 0.6 * np.exp(-pt * 14)
+for b in grid(DROP, STOP, BEAT):
+    i = int(b * SR); pump[i:i + len(shape)] = shape[: N - i]
+synth *= pump
+
+# final impact
+it = np.arange(int(2.2 * SR)) / SR
+boom = np.tanh(2 * np.sin(2 * np.pi * (36 * it + 70 * (1 - np.exp(-it * 10)) / 10)) * np.exp(-it * 2.2))
+put(drums, END, boom * 0.9); put(drums, END, crash)
+
+music = drums + synth
+music *= np.minimum(1, (DUR - t) / 0.6)
 
 # voiceover
 voice = np.zeros(N)
-for k, st in enumerate(tl["vo_start"]):
+for k, s0 in enumerate(tl["vo_start"]):
     a, sr = sf.read(f"line{k}.wav")
     if sr != SR: a = resample_poly(a, SR, sr)
-    i = int(st * SR); voice[i:i + len(a)] += a[: N - i]
-voice = voice / (np.abs(voice).max() + 1e-9) * 0.9
-# gentle presence: high-pass rumble, slight compression
-voice = hp(voice, 90)
-voice = np.sign(voice) * np.abs(voice) ** 0.85
+    put(voice, s0, a)
+voice = filt(voice, 90, "high")
+voice = voice / np.abs(voice).max()
+voice = np.tanh(voice * 2.2) / np.tanh(2.2)          # compress/saturate for a punchy ad read
 
-# duck music under voice
-env = lp(np.abs(voice), 6)
-env = np.clip(env / (env.max() + 1e-9) * 3, 0, 1)
-duck = 1 - 0.55 * env
-act = np.abs(voice) > 0.02
+act = np.abs(voice) > 0.03
 rms = lambda x: np.sqrt(np.mean(x ** 2))
-music = music * (rms(voice[act]) / rms(music)) * 10 ** (-11 / 20)   # bed sits 11 dB under the voice
-mix = voice + music * duck
-mix = mix / np.abs(mix).max() * 0.95
-st = np.stack([mix, mix], 1)
-sf.write("mix.wav", st, SR)
-sf.write("music_only.wav", np.stack([music, music], 1) / np.abs(music).max() * 0.9, SR)
-sf.write("voice_only.wav", np.stack([voice, voice], 1) * 0.95, SR)
-print("dur", DUR)
+music = music * (rms(voice[act]) / rms(music)) * 10 ** (-5 / 20)   # loud bed, ~5 dB under the voice
+env = filt(np.abs(voice), 8, "low"); env = np.clip(env / env.max() * 3, 0, 1)
+mix = voice + music * (1 - 0.35 * env)
+mix = np.tanh(mix / np.abs(mix).max() * 1.6) / np.tanh(1.6)       # soft clip for loudness
+sf.write("mix.wav", np.stack([mix, mix], 1) * 0.97, SR)
+print("dur", DUR, "drop", DROP, "end", END)

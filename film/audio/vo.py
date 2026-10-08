@@ -16,7 +16,7 @@ LINES = [
 ]
 out = []
 for i, line in enumerate(LINES):
-    a, sr = k.create(line, voice=voice, speed=1.12, lang="en-us")
+    a, sr = k.create(line, voice=voice, speed=1.3, lang="en-us")
     a = np.asarray(a, np.float32)
     nz = np.where(np.abs(a) > 0.01)[0]; a = a[max(nz[0]-200,0):nz[-1]+1200]
     sf.write(f"line{i}.wav", a, sr); out.append(len(a)/sr)

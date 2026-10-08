@@ -13,7 +13,9 @@ node rec.js 1080 1920 bloggerly-film-9x16.mp4   # vertical
 
 Needs Node with `playwright` and ffmpeg. Edit copy or timings in `film.html` and re-run.
 
-## v2: voice, music, faster (31 s)
+## v3: male voice, 128 BPM drums, loud master (28 s)
+
+Voice: `python3 vo.py am_michael` (speed 1.3).
 
 1. `audio/vo.py` writes one WAV per line with Kokoro (`pip install kokoro-onnx soundfile`, plus the
    `kokoro.onnx` and `voices.bin` model files from the kokoro-onnx GitHub releases).
@@ -23,4 +25,4 @@ Needs Node with `playwright` and ffmpeg. Edit copy or timings in `film.html` and
 3. `cd audio && python3 mix.py` synthesises the 120 BPM music bed, lays the voice on the timeline,
    ducks the music under it and writes `mix.wav` (needs `scipy`).
 4. `FILM=film_fast.html node rec.js 1080 1080 out.mp4`, then mux:
-   `ffmpeg -i out.mp4 -i audio/mix.wav -map 0:v -map 1:a -c:v copy -af loudnorm=I=-14:TP=-1.5 -c:a aac -shortest final.mp4`
+   `ffmpeg -i out.mp4 -i audio/mix.wav -map 0:v -map 1:a -c:v copy -af loudnorm=I=-10.5:TP=-2,alimiter=limit=0.8 -c:a aac -shortest final.mp4`
