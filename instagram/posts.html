@@ -1,0 +1,161 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:IS;src:url(fonts/instrument-serif-latin-400-normal.woff2)}
+@font-face{font-family:IS;font-style:italic;src:url(fonts/instrument-serif-latin-400-italic.woff2)}
+@font-face{font-family:NR;font-weight:400;src:url(fonts/newsreader-latin-400-normal.woff2)}
+@font-face{font-family:NR;font-weight:500;src:url(fonts/newsreader-latin-500-normal.woff2)}
+@font-face{font-family:NR;font-weight:600;src:url(fonts/newsreader-latin-600-normal.woff2)}
+@font-face{font-family:NR;font-style:italic;font-weight:400;src:url(fonts/newsreader-latin-400-italic.woff2)}
+@font-face{font-family:NR;font-style:italic;font-weight:500;src:url(fonts/newsreader-latin-500-italic.woff2)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#333;display:flex;flex-direction:column;gap:40px;padding:40px;width:max-content}
+.slide{width:1080px;height:1350px;position:relative;overflow:hidden;flex:none}
+.row{display:flex;gap:40px}
+
+/* ===== A: a16z-style cream editorial ===== */
+.A{background:#f4efe3;color:#1b2a5c;font-family:NR,serif}
+.A .eyebrow{position:absolute;left:96px;top:92px;font:500 24px/1 "Inter",sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#1b2a5c;opacity:.7}
+.A .num{position:absolute;right:96px;top:84px;font:italic 400 40px IS,serif;color:#1b2a5c;opacity:.6}
+.A h1{position:absolute;left:96px;right:96px;top:170px;font:italic 400 118px/1.0 IS,serif;letter-spacing:-.01em}
+.A h1 span{font-style:normal}
+.A .diag{position:absolute;left:96px;right:96px;top:520px;height:430px;display:flex;justify-content:space-around;align-items:center}
+.A .lab{font:500 22px "Inter",sans-serif;letter-spacing:.18em;text-align:center;margin-top:26px}
+.A .body{position:absolute;left:96px;right:96px;top:1010px;font:400 36px/1.38 NR,serif;color:#1b2a5c}
+.A .try{position:absolute;left:96px;right:96px;bottom:92px;font:italic 400 30px/1.4 NR,serif;color:#1b2a5c;opacity:.85;border-top:2px solid rgba(27,42,92,.25);padding-top:26px}
+.A .try b{font:500 20px "Inter",sans-serif;letter-spacing:.16em;text-transform:uppercase;font-style:normal;display:block;margin-bottom:10px;opacity:.7}
+
+/* ===== B: dark forest-green utility ===== */
+.B{background:#0f2a1f;color:#eef3ee;font-family:"Inter",sans-serif}
+.B .shot{position:absolute;left:80px;right:80px;top:96px;height:600px;border-radius:26px;overflow:hidden;background:#000;box-shadow:0 30px 80px rgba(0,0,0,.45),0 0 0 2px rgba(255,255,255,.08)}
+.B .shot img{width:100%;height:100%;object-fit:cover;object-position:top left}
+.B h2{position:absolute;left:80px;right:190px;top:750px;font:800 80px/1.04 "Inter",sans-serif;letter-spacing:-.035em}
+.B .sub{position:absolute;left:80px;right:80px;top:1010px;font:italic 400 44px/1.25 IS,serif;color:#b9d8c2}
+.B .badge{position:absolute;left:80px;bottom:72px;display:flex;align-items:center;gap:16px;font:600 28px "Inter";color:#eef3ee}
+.B .mk{width:54px;height:54px;border-radius:14px;background:linear-gradient(160deg,#ee3448,#c4182c);display:grid;place-items:center;font:800 34px "Inter";color:#fff}
+.B .series{position:absolute;right:80px;bottom:86px;font:600 22px "Inter";letter-spacing:.16em;text-transform:uppercase;color:#8fb59c}
+.B .idx{position:absolute;right:80px;top:770px;font:italic 400 60px IS,serif;color:#5f8a6f}
+
+/* ===== C: Matt Gray editorial paper ===== */
+.C{background:#f6f3ec;color:#141414;font-family:NR,serif}
+.C .ghost{position:absolute;inset:0;padding:120px 90px;font:400 30px/1.6 NR,serif;color:#141414;opacity:.10;filter:blur(5px);column-count:2;column-gap:60px;text-align:justify}
+.C .page{position:absolute;left:0;right:0;bottom:70px;text-align:center;font:400 26px NR,serif;color:#6b6b6b}
+.C .masthead{position:absolute;left:90px;right:90px;top:80px;display:flex;justify-content:space-between;font:500 22px "Inter";letter-spacing:.14em;text-transform:uppercase;color:#6b6b6b;border-bottom:1.5px solid #141414;padding-bottom:18px}
+.C h3{position:absolute;left:90px;right:90px;font:500 96px/1.04 NR,serif;letter-spacing:-.02em}
+.C h3 em{font-style:italic;font-weight:400}
+.C p{position:absolute;left:90px;right:90px;font:400 38px/1.45 NR,serif;color:#2a2a2a}
+.C svg{position:absolute}
+.C .line{border-bottom:2px solid #141414;height:64px}
+.C .q{font:500 30px "Inter";letter-spacing:.02em;margin-top:34px;color:#141414}
+.C .tag{position:absolute;left:90px;top:150px;background:#2f7d4f;color:#fff;font:600 22px "Inter";letter-spacing:.14em;text-transform:uppercase;padding:12px 20px;border-radius:999px}
+</style></head><body>
+
+<!-- ================= A ================= -->
+<div class="row" id="rowA"></div>
+<!-- ================= B ================= -->
+<div class="row" id="rowB"></div>
+<!-- ================= C ================= -->
+<div class="row" id="rowC"></div>
+
+<script>
+const $ = (h) => { const d = document.createElement('div'); d.innerHTML = h.trim(); return d.firstChild; };
+
+// ---------- A: six rules (X, Not Y), solid nested circles vs dashed outline
+const circlesSolid = (n) => `<svg width="300" height="300" viewBox="0 0 300 300">${[...Array(n)].map((_, i) => `<circle cx="150" cy="150" r="${140 - i * 140 / n}" fill="${i % 2 ? '#f4efe3' : '#1b2a5c'}"/>`).join('')}</svg>`;
+const circlesDash = (n) => `<svg width="300" height="300" viewBox="0 0 300 300">${[...Array(n)].map((_, i) => `<circle cx="${150 + (i - 1) * 18}" cy="${150 + (i % 2 ? 14 : -10)}" r="${130 - i * 30}" fill="none" stroke="#1b2a5c" stroke-width="3" stroke-dasharray="10 12"/>`).join('')}</svg>`;
+const RULES = [
+  ['Brief', 'Blank Page', 'BRIEF', 'BLANK PAGE', 'A post starts from a decision, not a blinking cursor.', 'Before you write a word, write the one sentence your reader should repeat.'],
+  ['Sources', 'Vibes', 'SOURCES', 'VIBES', 'Every claim should point somewhere a reader can check.', 'Link one primary source per section. If you can’t find one, cut the claim.'],
+  ['Voice', 'Generic', 'YOUR VOICE', 'ANYONE’S', 'If any company could have posted it, it isn’t yours yet.', 'Read your intro out loud. If a competitor could sign it, rewrite it.'],
+  ['Calendar', 'Someday', 'DATED', 'SOMEDAY', 'Ideas without a date stay drafts forever.', 'Put your next six posts on a calendar today, even the rough ones.'],
+  ['Every Channel', 'One Channel', 'EVERYWHERE', 'ONE PLACE', 'Publishing is the start of distribution, not the end of it.', 'Turn each finished post into a LinkedIn post, an X thread and a newsletter section.'],
+  ['Published', 'Perfect', 'SHIPPED', 'POLISHED', 'A shipped eight-out-of-ten beats a perfect draft nobody reads.', 'Set the publish time first. Edit until then, then hit publish.'],
+];
+const A = [];
+A.push(`<div class="slide A"><div class="eyebrow">bloggerly.ai · field guide</div><div class="num">01</div>
+  <h1>Six Rules for Content That <span>Actually</span> Ships</h1>
+  <div class="diag" style="top:620px">${circlesSolid(6)}</div>
+  <div class="body" style="top:1030px;text-align:left">What separates teams that publish every week from teams with forty drafts.</div>
+  <div class="try" style="border:0;opacity:.6"><b>Swipe →</b></div></div>`);
+RULES.forEach(([x, y, lx, ly, body, tri], i) => A.push(`<div class="slide A"><div class="eyebrow">Rule ${i + 1} of 6</div><div class="num">0${i + 2}</div>
+  <h1>${x}, <span>Not</span> ${y}</h1>
+  <div class="diag"><div>${circlesSolid(3 + (i % 3))}<div class="lab">${lx}</div></div><div>${circlesDash(3)}<div class="lab" style="opacity:.6">${ly}</div></div></div>
+  <div class="body">${body}</div>
+  <div class="try"><b>Try this</b>${tri}</div></div>`));
+A.push(`<div class="slide A"><div class="num" style="opacity:1;font:800 30px Inter;letter-spacing:-.02em;display:flex;align-items:center;gap:12px"><span style="width:44px;height:44px;border-radius:11px;background:linear-gradient(160deg,#ee3448,#c4182c);display:grid;place-items:center;color:#fff;font:800 28px Inter">B</span>bloggerly.ai</div>
+  <h1 style="top:300px">Bloggerly runs all <span>six</span> for you.</h1>
+  <div class="body" style="top:720px">Briefs, real sources, your brand voice, a content calendar and one-click repurposing, in a single flow.</div>
+  <div class="diag" style="top:880px;height:200px;justify-content:flex-start;gap:28px">${[...Array(6)].map(() => `<svg width="80" height="80"><circle cx="40" cy="40" r="36" fill="#1b2a5c"/></svg>`).join('')}</div>
+  <div class="try"><b>Follow for more</b>@bloggerlyai · Try it free at bloggerly.ai</div></div>`);
+
+// ---------- B: dark-green tool stack
+const SER = 'The 1-hour content engine';
+const badge = `<div class="badge"><div class="mk">B</div>bloggerly.ai</div><div class="series">${SER}</div>`;
+const B = [];
+B.push(`<div class="slide B" style="background:radial-gradient(120% 80% at 50% 0%,#1d4a36,#0b1f16)">
+  <div style="position:absolute;left:80px;right:80px;top:110px;display:flex;gap:18px;flex-wrap:wrap">${['studio','calendar','channels','assets'].map((u, i) => `<div style="flex:1 1 40%;height:250px;border-radius:20px;overflow:hidden;transform:rotate(${[-2,1.5,-1,2][i]}deg);box-shadow:0 20px 50px rgba(0,0,0,.5)"><img src="ui/${u}.jpg" style="width:100%;height:100%;object-fit:cover;object-position:top left"></div>`).join('')}</div>
+  <h2 style="top:690px;font-size:92px">The exact content engine I’d run if I only had <span style="color:#7be0a0">1 hour</span> a week</h2>
+  <div class="sub" style="top:1150px;font-size:40px">One tool. Six steps. Swipe →</div>${badge}</div>`);
+const TOOLS = [
+  ['studio', 'Brief in. Draft out.', '1,500 words, planned images and pro research, set up in one chat'],
+  ['agents', 'Ask from the chat you already use.', 'Works inside Claude, ChatGPT, Cursor and Codex. Connect once.'],
+  ['calendar', 'Your next 3 months, scheduled.', 'Month, week and queue views for every brand'],
+  ['assets', 'Every image, reusable.', 'AI generations, uploads and edits in one library'],
+  ['channels', 'Publish where readers are.', 'WordPress and Sanity today. LinkedIn and X auto-post on paid plans.'],
+  ['posts', 'Every post, tracked.', 'Drafts, completed and posted, filtered by brand and status'],
+];
+TOOLS.forEach(([u, h, s], i) => B.push(`<div class="slide B"><div class="shot"><img src="ui/${u}.jpg"></div>
+  <div class="idx">0${i + 1}</div><h2>${h}</h2><div class="sub">${s}</div>${badge}</div>`));
+B.push(`<div class="slide B" style="background:#e9f2ea;color:#0f2a1f">
+  <div style="position:absolute;inset:60px;border:3px solid #0f2a1f;border-radius:28px"></div>
+  <div style="position:absolute;left:120px;right:120px;top:140px;font:600 26px Inter;letter-spacing:.2em;text-transform:uppercase">Free setup walkthrough</div>
+  <div style="position:absolute;left:120px;right:120px;top:210px;font:900 168px/.92 Inter;letter-spacing:-.05em">Comment<br><span style="color:#c4182c">BRIEF</span></div>
+  <div style="position:absolute;left:120px;right:120px;top:700px;font:italic 400 56px/1.2 IS,serif">and we’ll send you the 2-minute setup to run this engine from Claude or ChatGPT.</div>
+  <div style="position:absolute;left:120px;right:120px;bottom:130px;display:flex;justify-content:space-between;font:600 28px Inter"><span>bloggerly.ai</span><span>Research → Publish</span></div></div>`);
+
+// ---------- C: Matt Gray-style editorial paper
+const GH = 'Content is a system problem. The teams that publish every week are not better writers, they have decided earlier. They know the question, the sources, the date. '.repeat(14);
+const page = (n) => `<div class="page">— ${n} —</div>`;
+const mast = `<div class="masthead"><span>The Bloggerly Letter</span><span>Issue 01</span></div>`;
+const C = [];
+C.push(`<div class="slide C"><div class="ghost">${GH}</div>${mast}
+  <h3 style="top:300px;font-size:118px">Your blog isn’t a writing problem.</h3>
+  <h3 style="top:740px;font-size:118px">It’s a <em>system</em> problem.</h3>${page(1)}</div>`);
+C.push(`<div class="slide C"><div class="ghost">${GH}</div>${mast}
+  <h3 style="top:300px">“I don’t have <em>time</em> to blog.”</h3>
+  <p style="top:640px">You don’t have time to start from zero every week.<br><br>Nobody does. That’s the real problem.</p>${page(2)}</div>`);
+C.push(`<div class="slide C"><div class="ghost">${GH}</div>${mast}
+  <h3 style="top:250px">Writers start with a blank page. Systems start with a <em>brief</em>.</h3>
+  <svg style="left:90px;top:760px" width="900" height="300" viewBox="0 0 900 300" fill="none" stroke="#141414" stroke-width="2.5">
+    <rect x="10" y="100" width="190" height="110" rx="6"/><text x="105" y="162" font-family="Newsreader" font-size="28" text-anchor="middle" fill="#141414" stroke="none">Brief</text>
+    <path d="M210 155 H330" marker-end="url(#ar)"/><rect x="340" y="100" width="190" height="110" rx="6"/><text x="435" y="162" font-family="Newsreader" font-size="28" text-anchor="middle" fill="#141414" stroke="none">Draft</text>
+    <path d="M540 155 H660"/><path d="M650 147 L662 155 L650 163"/><path d="M320 147 L332 155 L320 163"/>
+    <rect x="670" y="100" width="210" height="110" rx="6"/><text x="775" y="162" font-family="Newsreader" font-size="28" text-anchor="middle" fill="#141414" stroke="none">Published</text>
+    <path d="M105 230 C 105 290, 775 290, 775 225" stroke-dasharray="6 8"/><text x="440" y="290" font-family="Newsreader" font-style="italic" font-size="24" text-anchor="middle" fill="#6b6b6b" stroke="none">repeat weekly</text>
+  </svg>${page(3)}</div>`);
+const DAYS = [['Mon', 'Pick the question your customers asked most.'], ['Tue', 'Research three sources you’d happily cite.'], ['Wed', 'Draft from the brief, not from scratch.'], ['Thu', 'Edit for your voice. Add the images.'], ['Fri', 'Publish. Then repurpose it to LinkedIn and X.']];
+C.push(`<div class="slide C"><div class="ghost">${GH}</div>${mast}
+  <h3 style="top:200px">The week, on <em>rails</em>.</h3>
+  <div style="position:absolute;left:90px;right:90px;top:420px">${DAYS.map(([d, t]) => `<div style="display:flex;gap:40px;padding:30px 0;border-bottom:1.5px solid rgba(20,20,20,.25)"><span style="font:italic 400 44px NR;width:120px">${d}</span><span style="font:400 38px/1.35 NR">${t}</span></div>`).join('')}</div>${page(4)}</div>`);
+C.push(`<div class="slide C">${mast}<div class="tag">Save this</div>
+  <h3 style="top:240px;font-size:84px">Fill this in before <em>Monday</em>.</h3>
+  <div style="position:absolute;left:90px;right:90px;top:450px">
+    <div class="q">The question my customers asked this week</div><div class="line"></div><div class="line"></div>
+    <div class="q">Three sources I’d cite</div><div class="line"></div><div class="line"></div><div class="line"></div>
+    <div class="q">The one sentence they should remember</div><div class="line"></div>
+    <div class="q">Publish date</div><div class="line" style="width:50%"></div></div>${page(5)}</div>`);
+C.push(`<div class="slide C"><div class="ghost">${GH}</div>${mast}
+  <h3 style="top:260px">Why it <em>works</em>.</h3>
+  <p style="top:480px">Every decision happens once, on Monday.<br><br>The rest of the week is execution. And execution is exactly the part a tool can carry for you.</p>
+  <svg style="left:90px;top:1000px" width="900" height="120" fill="none" stroke="#141414" stroke-width="2.5"><path d="M0 100 C 200 100, 250 20, 450 20 S 700 100, 900 100"/><circle cx="450" cy="20" r="8" fill="#141414"/></svg>${page(6)}</div>`);
+C.push(`<div class="slide C"><div class="ghost">${GH}</div>${mast}
+  <h3 style="top:420px;font-size:120px;text-align:center">Consistency is a <em>system</em>, not a mood.</h3>${page(7)}</div>`);
+C.push(`<div class="slide C">${mast}
+  <h3 style="top:240px">Bloggerly runs the <em>whole</em> week for you.</h3>
+  <p style="top:600px">Brief, research with real citations, draft in your voice, images, then publish and repurpose to every channel.</p>
+  <p style="top:940px;font:italic 400 44px NR">Save this post. Try it free at bloggerly.ai</p>${page(8)}</div>`);
+
+[['rowA', A], ['rowB', B], ['rowC', C]].forEach(([id, arr]) => { const r = document.getElementById(id); arr.forEach(h => r.appendChild($(h))); });
+window.ready = Promise.all([document.fonts.ready, ...[...document.images].map(i => i.complete ? 1 : new Promise(r => i.onload = i.onerror = r))]);
+</script>
+</body></html>
