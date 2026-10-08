@@ -1,0 +1,790 @@
+{
+ "_doc": "One entry per creative. focal = subject centre as [x, y] fractions of the image. text = bottom of the headline block (fraction of height). motion: push | crash | spin | pan | tiltup | rise | bounce. fx: grain, vignette, flicker, lights, glow, leak, heat, shake, handheld. lock = keep headline + logo bands pinned while the scene moves (false for full-bleed photo/anime art).",
+ "shots": [
+  {
+   "file": "01-museum-draft.png",
+   "series": "Original Concepts",
+   "focal": [
+    0.5,
+    0.52
+   ],
+   "text": 0.3,
+   "motion": "push",
+   "fx": [
+    "grain"
+   ]
+  },
+  {
+   "file": "02-breaking-news-snail.png",
+   "series": "Original Concepts",
+   "focal": [
+    0.5,
+    0.7
+   ],
+   "text": 0.33,
+   "motion": "pan",
+   "fx": [
+    "grain"
+   ]
+  },
+  {
+   "file": "03-three-coffees.png",
+   "series": "Original Concepts",
+   "focal": [
+    0.55,
+    0.62
+   ],
+   "text": 0.25,
+   "motion": "spin",
+   "fx": [
+    "grain",
+    "leak"
+   ]
+  },
+  {
+   "file": "04-confidence-citation.png",
+   "series": "Original Concepts",
+   "focal": [
+    0.5,
+    0.5
+   ],
+   "text": 0.3,
+   "motion": "push",
+   "fx": [
+    "grain"
+   ]
+  },
+  {
+   "file": "05-blank-page-shadow.png",
+   "series": "Original Concepts",
+   "focal": [
+    0.45,
+    0.58
+   ],
+   "text": 0.3,
+   "motion": "push",
+   "fx": [
+    "grain",
+    "vignette",
+    "flicker"
+   ],
+   "strength": 1.4
+  },
+  {
+   "file": "01-flirty-lipstick.png",
+   "series": "Flirty",
+   "focal": [
+    0.55,
+    0.6
+   ],
+   "text": 0.33,
+   "motion": "push",
+   "fx": [
+    "grain",
+    "leak"
+   ]
+  },
+  {
+   "file": "02-flirty-corset.png",
+   "series": "Flirty",
+   "focal": [
+    0.5,
+    0.65
+   ],
+   "text": 0.28,
+   "motion": "rise",
+   "fx": [
+    "grain",
+    "leak"
+   ]
+  },
+  {
+   "file": "03-flirty-unwrapped.png",
+   "series": "Flirty",
+   "focal": [
+    0.6,
+    0.6
+   ],
+   "text": 0.31,
+   "motion": "push",
+   "fx": [
+    "grain",
+    "leak"
+   ]
+  },
+  {
+   "file": "04-flirty-hotel.png",
+   "series": "Flirty",
+   "focal": [
+    0.5,
+    0.55
+   ],
+   "text": 0.31,
+   "motion": "push",
+   "fx": [
+    "grain",
+    "leak",
+    "vignette"
+   ]
+  },
+  {
+   "file": "05-flirty-chemistry.png",
+   "series": "Flirty",
+   "focal": [
+    0.5,
+    0.72
+   ],
+   "text": 0.36,
+   "motion": "push",
+   "fx": [
+    "grain",
+    "leak"
+   ],
+   "strength": 1.3
+  },
+  {
+   "file": "06-horror-haunted-draft.png",
+   "series": "Horror",
+   "focal": [
+    0.5,
+    0.62
+   ],
+   "text": 0.3,
+   "motion": "push",
+   "fx": [
+    "grain",
+    "vignette",
+    "flicker"
+   ],
+   "lock": false,
+   "strength": 1.3
+  },
+  {
+   "file": "07-horror-phantom-source.png",
+   "series": "Horror",
+   "focal": [
+    0.45,
+    0.65
+   ],
+   "text": 0.36,
+   "motion": "push",
+   "fx": [
+    "grain",
+    "vignette",
+    "flicker"
+   ],
+   "lock": false
+  },
+  {
+   "file": "08-horror-brand-double.png",
+   "series": "Horror",
+   "focal": [
+    0.5,
+    0.55
+   ],
+   "text": 0.27,
+   "motion": "push",
+   "fx": [
+    "grain",
+    "vignette",
+    "flicker"
+   ],
+   "lock": false,
+   "strength": 1.2
+  },
+  {
+   "file": "09-horror-tomorrow.png",
+   "series": "Horror",
+   "focal": [
+    0.5,
+    0.6
+   ],
+   "text": 0.33,
+   "motion": "push",
+   "fx": [
+    "grain",
+    "vignette",
+    "flicker"
+   ],
+   "lock": false
+  },
+  {
+   "file": "10-horror-time-creature.png",
+   "series": "Horror",
+   "focal": [
+    0.5,
+    0.68
+   ],
+   "text": 0.31,
+   "motion": "push",
+   "fx": [
+    "grain",
+    "vignette",
+    "flicker"
+   ],
+   "lock": false
+  },
+  {
+   "file": "11-playful-launch-date.png",
+   "series": "Playful",
+   "focal": [
+    0.42,
+    0.6
+   ],
+   "text": 0.27,
+   "motion": "rise",
+   "fx": [
+    "grain"
+   ]
+  },
+  {
+   "file": "12-playful-hamster.png",
+   "series": "Playful",
+   "focal": [
+    0.45,
+    0.72
+   ],
+   "text": 0.3,
+   "motion": "bounce",
+   "fx": [
+    "grain"
+   ]
+  },
+  {
+   "file": "13-playful-juice.png",
+   "series": "Playful",
+   "focal": [
+    0.5,
+    0.7
+   ],
+   "text": 0.3,
+   "motion": "bounce",
+   "fx": [
+    "grain"
+   ]
+  },
+  {
+   "file": "14-playful-post-sandwich.png",
+   "series": "Playful",
+   "focal": [
+    0.5,
+    0.58
+   ],
+   "text": 0.27,
+   "motion": "bounce",
+   "fx": [
+    "grain"
+   ]
+  },
+  {
+   "file": "15-playful-life-after-post.png",
+   "series": "Playful",
+   "focal": [
+    0.62,
+    0.65
+   ],
+   "text": 0.32,
+   "motion": "rise",
+   "fx": [
+    "grain",
+    "leak"
+   ]
+  },
+  {
+   "file": "01-friends-pivot.png",
+   "series": "Friends",
+   "focal": [
+    0.58,
+    0.6
+   ],
+   "text": 0.32,
+   "motion": "bounce",
+   "fx": [
+    "grain"
+   ]
+  },
+  {
+   "file": "02-friends-joey.png",
+   "series": "Friends",
+   "focal": [
+    0.4,
+    0.47
+   ],
+   "text": 0.36,
+   "motion": "crash",
+   "fx": [
+    "grain",
+    "handheld"
+   ]
+  },
+  {
+   "file": "03-friends-chandler.png",
+   "series": "Friends",
+   "focal": [
+    0.5,
+    0.52
+   ],
+   "text": 0.3,
+   "motion": "crash",
+   "fx": [
+    "grain",
+    "handheld"
+   ]
+  },
+  {
+   "file": "04-friends-monica.png",
+   "series": "Friends",
+   "focal": [
+    0.62,
+    0.48
+   ],
+   "text": 0.27,
+   "motion": "push",
+   "fx": [
+    "grain"
+   ]
+  },
+  {
+   "file": "05-sitcom-purple-door.png",
+   "series": "Friends",
+   "focal": [
+    0.45,
+    0.72
+   ],
+   "text": 0.25,
+   "motion": "push",
+   "fx": [
+    "grain"
+   ]
+  },
+  {
+   "file": "06-sitcom-group-chat.png",
+   "series": "Friends",
+   "focal": [
+    0.5,
+    0.62
+   ],
+   "text": 0.3,
+   "motion": "bounce",
+   "fx": [
+    "grain"
+   ]
+  },
+  {
+   "file": "07-sitcom-stood-up.png",
+   "series": "Friends",
+   "focal": [
+    0.45,
+    0.62
+   ],
+   "text": 0.34,
+   "motion": "pan",
+   "fx": [
+    "grain",
+    "leak"
+   ]
+  },
+  {
+   "file": "08-sitcom-social-calendar.png",
+   "series": "Friends",
+   "focal": [
+    0.5,
+    0.66
+   ],
+   "text": 0.32,
+   "motion": "push",
+   "fx": [
+    "grain",
+    "leak"
+   ]
+  },
+  {
+   "file": "01-office-extension.png",
+   "series": "The Office",
+   "focal": [
+    0.35,
+    0.62
+   ],
+   "text": 0.25,
+   "motion": "crash",
+   "fx": [
+    "grain",
+    "handheld"
+   ]
+  },
+  {
+   "file": "02-office-meetings.png",
+   "series": "The Office",
+   "focal": [
+    0.5,
+    0.62
+   ],
+   "text": 0.3,
+   "motion": "spin",
+   "fx": [
+    "grain"
+   ]
+  },
+  {
+   "file": "03-office-paper-jam.png",
+   "series": "The Office",
+   "focal": [
+    0.4,
+    0.62
+   ],
+   "text": 0.28,
+   "motion": "crash",
+   "fx": [
+    "grain",
+    "handheld"
+   ]
+  },
+  {
+   "file": "04-office-lunch.png",
+   "series": "The Office",
+   "focal": [
+    0.4,
+    0.72
+   ],
+   "text": 0.28,
+   "motion": "crash",
+   "fx": [
+    "grain",
+    "handheld"
+   ]
+  },
+  {
+   "file": "05-stranger-alphabet.png",
+   "series": "Stranger Things",
+   "focal": [
+    0.5,
+    0.5
+   ],
+   "text": 0.28,
+   "motion": "push",
+   "fx": [
+    "grain",
+    "vignette",
+    "lights"
+   ],
+   "lock": false
+  },
+  {
+   "file": "06-stranger-upside-down.png",
+   "series": "Stranger Things",
+   "focal": [
+    0.5,
+    0.62
+   ],
+   "text": 0.29,
+   "motion": "push",
+   "fx": [
+    "grain",
+    "vignette",
+    "glow",
+    "shake"
+   ],
+   "lock": false
+  },
+  {
+   "file": "07-stranger-eleven.png",
+   "series": "Stranger Things",
+   "focal": [
+    0.5,
+    0.55
+   ],
+   "text": 0.3,
+   "motion": "push",
+   "fx": [
+    "grain",
+    "glow"
+   ],
+   "lock": false
+  },
+  {
+   "file": "08-stranger-demogorgon.png",
+   "series": "Stranger Things",
+   "focal": [
+    0.5,
+    0.62
+   ],
+   "text": 0.28,
+   "motion": "push",
+   "fx": [
+    "grain",
+    "vignette",
+    "flicker"
+   ],
+   "lock": false
+  },
+  {
+   "file": "09-breaking-brand-name.png",
+   "series": "Breaking Bad",
+   "focal": [
+    0.5,
+    0.55
+   ],
+   "text": 0.22,
+   "motion": "push",
+   "fx": [
+    "grain",
+    "vignette"
+   ]
+  },
+  {
+   "file": "10-breaking-rv-printer.png",
+   "series": "Breaking Bad",
+   "focal": [
+    0.45,
+    0.66
+   ],
+   "text": 0.27,
+   "motion": "pan",
+   "fx": [
+    "grain",
+    "heat"
+   ],
+   "lock": false
+  },
+  {
+   "file": "11-breaking-perfect-draft.png",
+   "series": "Breaking Bad",
+   "focal": [
+    0.45,
+    0.58
+   ],
+   "text": 0.34,
+   "motion": "push",
+   "fx": [
+    "grain",
+    "vignette",
+    "glow"
+   ]
+  },
+  {
+   "file": "12-breaking-tabs-yo.png",
+   "series": "Breaking Bad",
+   "focal": [
+    0.45,
+    0.66
+   ],
+   "text": 0.33,
+   "motion": "crash",
+   "fx": [
+    "grain",
+    "handheld"
+   ]
+  },
+  {
+   "file": "13-science-research-machine.png",
+   "series": "Breaking Bad",
+   "focal": [
+    0.35,
+    0.56
+   ],
+   "text": 0.27,
+   "motion": "pan",
+   "fx": [
+    "grain"
+   ]
+  },
+  {
+   "file": "14-science-keyword-plants.png",
+   "series": "Breaking Bad",
+   "focal": [
+    0.45,
+    0.7
+   ],
+   "text": 0.29,
+   "motion": "pan",
+   "fx": [
+    "grain",
+    "heat"
+   ]
+  },
+  {
+   "file": "15-science-brand-voice-bottles.png",
+   "series": "Breaking Bad",
+   "focal": [
+    0.55,
+    0.66
+   ],
+   "text": 0.39,
+   "motion": "pan",
+   "fx": [
+    "grain"
+   ]
+  },
+  {
+   "file": "16-science-hazardous-blog.png",
+   "series": "Breaking Bad",
+   "focal": [
+    0.55,
+    0.62
+   ],
+   "text": 0.34,
+   "motion": "push",
+   "fx": [
+    "grain"
+   ]
+  },
+  {
+   "file": "09-anime-paper-colossus.png",
+   "series": "Attack on Titan",
+   "focal": [
+    0.55,
+    0.62
+   ],
+   "text": 0.22,
+   "motion": "tiltup",
+   "fx": [
+    "grain",
+    "shake"
+   ],
+   "lock": false
+  },
+  {
+   "file": "10-anime-fluff-monster.png",
+   "series": "Attack on Titan",
+   "focal": [
+    0.62,
+    0.62
+   ],
+   "text": 0.3,
+   "motion": "push",
+   "fx": [
+    "grain",
+    "shake"
+   ]
+  },
+  {
+   "file": "11-anime-walking-deadline.png",
+   "series": "Attack on Titan",
+   "focal": [
+    0.5,
+    0.66
+   ],
+   "text": 0.29,
+   "motion": "pan",
+   "fx": [
+    "grain",
+    "shake",
+    "heat"
+   ],
+   "lock": false
+  },
+  {
+   "file": "12-anime-idea-expedition.png",
+   "series": "Attack on Titan",
+   "focal": [
+    0.52,
+    0.6
+   ],
+   "text": 0.27,
+   "motion": "push",
+   "fx": [
+    "grain"
+   ],
+   "lock": false
+  },
+  {
+   "file": "13-titan-backlog.png",
+   "series": "Attack on Titan",
+   "focal": [
+    0.5,
+    0.42
+   ],
+   "text": 0.25,
+   "motion": "tiltup",
+   "fx": [
+    "grain",
+    "shake"
+   ],
+   "lock": false
+  },
+  {
+   "file": "14-titan-levi-edit.png",
+   "series": "Attack on Titan",
+   "focal": [
+    0.5,
+    0.66
+   ],
+   "text": 0.34,
+   "motion": "crash",
+   "fx": [
+    "grain",
+    "shake"
+   ],
+   "lock": false
+  },
+  {
+   "file": "15-titan-mikasa-publish.png",
+   "series": "Attack on Titan",
+   "focal": [
+    0.58,
+    0.62
+   ],
+   "text": 0.25,
+   "motion": "crash",
+   "fx": [
+    "grain",
+    "shake"
+   ],
+   "lock": false
+  },
+  {
+   "file": "17-fantasy-research-backpack.png",
+   "series": "Lord of the Rings",
+   "focal": [
+    0.4,
+    0.7
+   ],
+   "text": 0.3,
+   "motion": "push",
+   "fx": [
+    "grain",
+    "leak"
+   ]
+  },
+  {
+   "file": "18-fantasy-paper-dragon.png",
+   "series": "Lord of the Rings",
+   "focal": [
+    0.55,
+    0.68
+   ],
+   "text": 0.3,
+   "motion": "bounce",
+   "fx": [
+    "grain",
+    "vignette"
+   ]
+  },
+  {
+   "file": "19-fantasy-draft-bridge.png",
+   "series": "Lord of the Rings",
+   "focal": [
+    0.62,
+    0.66
+   ],
+   "text": 0.35,
+   "motion": "pan",
+   "fx": [
+    "grain"
+   ]
+  },
+  {
+   "file": "20-fantasy-article-map.png",
+   "series": "Lord of the Rings",
+   "focal": [
+    0.5,
+    0.58
+   ],
+   "text": 0.27,
+   "motion": "spin",
+   "fx": [
+    "grain"
+   ]
+  }
+ ]
+}
