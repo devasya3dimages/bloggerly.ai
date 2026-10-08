@@ -1,0 +1,269 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:Anton;src:url(fonts/anton-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:Bebas;src:url(fonts/bebas-neue-latin-400-normal.woff2) format("woff2")}
+html,body{margin:0;background:#000;overflow:hidden}
+canvas{display:block}
+</style></head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <filter id="R"><feColorMatrix type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0"/></filter>
+  <filter id="G"><feColorMatrix type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0"/></filter>
+  <filter id="B"><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0"/></filter>
+</svg>
+<canvas id="c"></canvas>
+<script>
+const W = innerWidth, H = innerHeight, P = H > W * 1.2;          // portrait?
+const cv = document.getElementById('c'); cv.width = W; cv.height = H;
+const ctx = cv.getContext('2d');
+const off = document.createElement('canvas'); off.width = W; off.height = H; const o = off.getContext('2d');
+const BPM = 140, BT = 60 / BPM, BAR = 4 * BT, DUR = 18 * BAR + 0.15;
+const S = (bar) => bar * BAR;                                     // section start time
+const U = Math.min(W, H) / 1080;                                  // unit scale
+
+// ---------- assets
+const POSTERS = ["01-flirty-lipstick","01-friends-pivot","01-museum-draft","01-office-extension","02-breaking-news-snail","02-flirty-corset","02-friends-joey","02-office-meetings","03-flirty-unwrapped","03-friends-chandler","03-office-paper-jam","03-three-coffees","04-confidence-citation","04-flirty-hotel","04-friends-monica","04-office-lunch","05-blank-page-shadow","05-flirty-chemistry","05-sitcom-purple-door","05-stranger-alphabet","06-horror-haunted-draft","06-sitcom-group-chat","06-stranger-upside-down","07-horror-phantom-source","07-sitcom-stood-up","07-stranger-eleven","08-horror-brand-double","08-sitcom-social-calendar","08-stranger-demogorgon","09-anime-paper-colossus","09-breaking-brand-name","09-horror-tomorrow","10-anime-fluff-monster","10-breaking-rv-printer","10-horror-time-creature","11-anime-walking-deadline","11-breaking-perfect-draft","11-playful-launch-date","12-anime-idea-expedition","12-breaking-tabs-yo","12-playful-hamster","13-playful-juice","13-science-research-machine","13-titan-backlog","14-playful-post-sandwich","14-science-keyword-plants","14-titan-levi-edit","15-playful-life-after-post","15-science-brand-voice-bottles","15-titan-mikasa-publish","16-science-hazardous-blog","17-fantasy-research-backpack","18-fantasy-paper-dragon","19-fantasy-draft-bridge","20-fantasy-article-map"];
+const UI = ["studio","calendar","agents","integrations_crop","card_posted","card_completed"];
+const img = {};
+const load = (k, src) => new Promise(r => { const i = new Image(); i.onload = () => { img[k] = i; r(); }; i.src = src; });
+window.ready = Promise.all([...POSTERS.map(p => load(p, `p/${p}.jpg`)), ...UI.map(u => load(u, `ui/${u}.jpg`)),
+  document.fonts.load('100px Anton'), document.fonts.load('100px Bebas')]);
+
+// ---------- helpers
+const cl = (x) => Math.max(0, Math.min(1, x));
+const eo = (x) => 1 - Math.pow(1 - cl(x), 3);
+const eob = (x) => { x = cl(x); const c = 1.70158; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); }; // overshoot
+const rnd = (n) => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+const beatOf = (t) => Math.floor(t / BT), ph = (t) => (t / BT) % 1;
+const punch = (t, k = 7) => Math.exp(-ph(t) * k);
+
+function cover(c, im, x, y, w, h, zoom = 1, ox = 0, oy = 0) {   // draw image covering box
+  const s = Math.max(w / im.width, h / im.height) * zoom, iw = im.width * s, ih = im.height * s;
+  c.drawImage(im, x + (w - iw) / 2 + ox, y + (h - ih) / 2 + oy, iw, ih);
+}
+function card(c, im, cx, cy, w, rot, sc, glow) {
+  const h = w * im.height / im.width;
+  c.save(); c.translate(cx, cy); c.rotate(rot); c.scale(sc, sc);
+  if (glow) { c.shadowColor = glow; c.shadowBlur = 60 * U; }
+  c.fillStyle = '#fff'; c.fillRect(-w / 2 - 6 * U, -h / 2 - 6 * U, w + 12 * U, h + 12 * U);
+  c.shadowBlur = 0; c.drawImage(im, -w / 2, -h / 2, w, h); c.restore();
+}
+function txt(c, s, x, y, size, opt = {}) {
+  c.save(); c.font = `${size}px ${opt.font || 'Anton'}`; c.textAlign = opt.align || 'center'; c.textBaseline = 'middle';
+  if (opt.track) c.letterSpacing = opt.track + 'px';
+  if (opt.echo) for (let k = opt.echo; k >= 1; k--) {               // psychedelic echo trail
+    c.save(); c.translate(x, y); c.scale(1 + k * 0.06, 1 + k * 0.06); c.globalAlpha = 0.5 / k;
+    c.fillStyle = `hsl(${(opt.hue || 0) + k * 55},100%,60%)`; c.fillText(s, 0, 0); c.restore();
+  }
+  if (opt.stroke) { c.lineWidth = opt.stroke; c.strokeStyle = opt.strokeColor || '#000'; c.strokeText(s, x, y); }
+  c.fillStyle = opt.color || '#fff'; if (opt.glow) { c.shadowColor = opt.glow; c.shadowBlur = 40 * U; }
+  c.fillText(s, x, y); c.restore();
+}
+function fit(c, s, maxW, size, font = 'Anton') { c.font = `${size}px ${font}`; const w = c.measureText(s).width; return w > maxW ? size * maxW / w : size; }
+
+function tunnel(c, t, hue, speed = 1, alpha = 1) {             // trippy ring tunnel
+  c.save(); c.globalAlpha = alpha; c.fillStyle = '#000'; c.fillRect(0, 0, W, H);
+  const R = Math.hypot(W, H) / 2, n = 22, shift = (t * speed * 1.8) % 1;
+  for (let i = n; i >= 0; i--) {
+    const r = R * Math.pow((i + shift) / n, 2.2) * 1.4;
+    c.beginPath(); c.arc(W / 2, H / 2, Math.max(r, 1), 0, 7);
+    c.fillStyle = `hsl(${hue + i * 18 + t * 90},90%,${i % 2 ? 12 : 22}%)`; c.fill();
+  }
+  c.restore();
+}
+function kaleido(c, im, t, n, zoom, spin) {
+  const R = Math.hypot(W, H) / 2 + 10, a = 2 * Math.PI / n;
+  for (let i = 0; i < n; i++) {
+    c.save(); c.translate(W / 2, H / 2); c.rotate(i * a + spin); if (i % 2) c.scale(1, -1);
+    c.beginPath(); c.moveTo(0, 0); c.arc(0, 0, R, -a / 2 - 0.01, a / 2 + 0.01); c.closePath(); c.clip();
+    const s = zoom * R / im.width * 1.4;
+    c.drawImage(im, -im.width * s * 0.15 + Math.sin(t) * 40 * U, -im.height * s / 2 + Math.cos(t * 0.7) * 60 * U, im.width * s, im.height * s);
+    c.restore();
+  }
+}
+function scanDots(c, alpha) {                                    // LED / halftone texture
+  c.save(); c.globalAlpha = alpha; c.fillStyle = '#000';
+  const g = 6 * U; for (let y = 0; y < H; y += g) c.fillRect(0, y, W, g * 0.35);
+  c.restore();
+}
+
+// ---------- sections (draw into `o`, return fx params)
+function sIntro(t) {
+  const lt = t - S(0), b = Math.floor(lt / BT);
+  tunnel(o, t, 260, 0.6, 1); o.fillStyle = 'rgba(0,0,0,.45)'; o.fillRect(0, 0, W, H);
+  if (b < 2) txt(o, 'TONIGHT', W / 2, H / 2, 150 * U * (1 + 0.04 * Math.sin(t * 30)), { echo: 3, hue: 280, track: 20 * U });
+  const A = img['06-horror-haunted-draft'], Bm = img['15-titan-mikasa-publish'];
+  const cw = (P ? 560 : 400) * U;
+  if (lt > 2 * BT) { const e = eob((lt - 2 * BT) / 0.35);
+    const x = P ? W / 2 - 140 * U + (1 - e) * -W : W * 0.27 + (1 - e) * -W, y = P ? H * 0.27 : H * 0.5;
+    card(o, A, x, y, cw, -0.07, 1 + 0.05 * punch(t), 'hsl(280,100%,60%)');
+    txt(o, 'YOUR DRAFTS', x, y + (P ? -420 : 330) * U, 76 * U, { stroke: 10 * U, glow: '#a0f' }); }
+  if (lt > 5 * BT) { const e = eob((lt - 5 * BT) / 0.35);
+    const x = P ? W / 2 + 140 * U + (1 - e) * W : W * 0.73 + (1 - e) * W, y = P ? H * 0.71 : H * 0.5;
+    card(o, Bm, x, y, cw, 0.07, 1 + 0.05 * punch(t), 'hsl(20,100%,60%)');
+    txt(o, 'PUBLISHED', x, y + (P ? 420 : 330) * U, 76 * U, { stroke: 10 * U, glow: '#f60' }); }
+  if (lt > 4 * BT) { const e = eob((lt - 4 * BT) / 0.25);
+    txt(o, 'VS', W / 2, H / 2, 260 * U * (0.5 + 0.5 * e) * (1 + 0.12 * punch(t)), { echo: 4, hue: t * 200, stroke: 14 * U, color: '#ffe600' }); }
+  return { rgb: 4 + 10 * punch(t), flash: b === 4 ? punch(t, 5) * 0.8 : 0, shake: b >= 4 ? 10 * punch(t) : 0, hue: 0 };
+}
+function sLineup(t) {
+  const lt = t - S(2), b = Math.floor(lt / BT);
+  tunnel(o, t, 20, 0.8, 1); o.fillStyle = 'rgba(0,0,0,.55)'; o.fillRect(0, 0, W, H);
+  txt(o, 'STARTING LINEUP', W / 2, (P ? 250 : 110) * U, fit(o, 'STARTING LINEUP', W * 0.9, 130 * U), { echo: 2, hue: 30, track: 6 * U, color: '#ffe600' });
+  const L = [['13-science-research-machine', '01', 'RESEARCH'], ['14-titan-levi-edit', '02', 'WRITING'], ['18-fantasy-paper-dragon', '03', 'IMAGES'], ['15-titan-mikasa-publish', '04', 'PUBLISHING']];
+  const cw = (P ? 430 : 300) * U;
+  L.forEach(([k, n, name], i) => {
+    if (b < i + 1) return;
+    const e = eob((lt - (i + 1) * BT) / 0.3);
+    const gx = P ? (i % 2 ? 0.73 : 0.27) * W : (0.14 + i * 0.24) * W, gy = P ? (i < 2 ? 0.37 : 0.72) * H : 0.5 * H;
+    const hue = (i * 90 + t * 120) % 360;
+    card(o, img[k], gx, gy + (1 - e) * 300 * U, cw, (i % 2 ? 1 : -1) * 0.04, e * (1 + (b === i + 1 ? 0.08 * punch(t) : 0.02 * punch(t))), `hsl(${hue},100%,60%)`);
+    txt(o, '#' + n, gx - cw * 0.36, gy - cw * 0.55, 70 * U, { stroke: 8 * U, color: `hsl(${hue},100%,65%)` });
+    txt(o, name, gx, gy + cw * 0.72, fit(o, name, cw * 1.05, 64 * U), { stroke: 8 * U });
+  });
+  return { rgb: 3 + 8 * punch(t), flash: 0.25 * punch(t, 9), shake: 5 * punch(t), hue: 0 };
+}
+const KWORDS = ['IDEA', 'BRIEF', 'RESEARCH', 'DRAFT', 'IMAGES', 'CITE IT', 'PUBLISH', 'REPEAT'];
+const KPOST = ['05-stranger-alphabet', '12-breaking-tabs-yo', '13-titan-backlog', '01-friends-pivot', '18-fantasy-paper-dragon', '07-stranger-eleven', '15-titan-mikasa-publish', '11-playful-launch-date'];
+function sKaleido(t) {
+  const lt = t - S(4), b = Math.min(7, Math.floor(lt / BT)), p = punch(t, 6);
+  o.fillStyle = '#000'; o.fillRect(0, 0, W, H);
+  o.save(); o.filter = `hue-rotate(${t * 160}deg) saturate(1.8)`;
+  kaleido(o, img[KPOST[b]], t, 8 + 2 * (b % 3), 1.3 + 0.35 * p, t * 0.9 + b * 0.4); o.restore();
+  o.fillStyle = `rgba(0,0,0,${0.25 + 0.2 * (1 - p)})`; o.fillRect(0, 0, W, H);
+  const w = KWORDS[b];
+  txt(o, w, W / 2, H / 2, fit(o, w, W * 0.92, 300 * U) * (1 + 0.18 * p), { echo: 4, hue: t * 300, stroke: 16 * U });
+  return { rgb: 8 + 26 * p, flash: 0.55 * punch(t, 10), shake: 16 * p, hue: 0 };
+}
+function sProduct(t) {
+  const lt = t - S(6), b = Math.floor(lt / BT), second = b >= 4;
+  tunnel(o, t, second ? 160 : 200, 1.2, 1); o.fillStyle = 'rgba(0,0,0,.35)'; o.fillRect(0, 0, W, H);
+  const im = img[second ? 'calendar' : 'studio'], e = eob(((second ? lt - 4 * BT : lt)) / 0.4);
+  const w = W * (P ? 0.92 : 0.78), h = w * im.height / im.width, z = 1 + 0.06 * punch(t) + 0.02 * (lt % (4 * BT));
+  o.save(); o.translate(W / 2, H / 2 + (P ? 60 : 30) * U); o.transform(1, (second ? -1 : 1) * 0.05, (second ? 1 : -1) * 0.12, 1, 0, 0);
+  o.scale(z * e, z * e); o.shadowColor = `hsl(${t * 200},100%,60%)`; o.shadowBlur = 80 * U;
+  o.fillStyle = '#111'; o.fillRect(-w / 2 - 8 * U, -h / 2 - 8 * U, w + 16 * U, h + 16 * U); o.shadowBlur = 0;
+  o.drawImage(im, -w / 2, -h / 2, w, h); o.restore();
+  const head = second ? '3 MONTHS. ONE SITTING.' : 'THE PLAYMAKER';
+  txt(o, head, W / 2, (P ? 330 : 120) * U, fit(o, head, W * 0.9, 150 * U) * (1 + 0.06 * punch(t)), { echo: 3, hue: t * 120, stroke: 12 * U, color: '#ffe600' });
+  const sub = second ? 'SCHEDULE YOUR WHOLE SEASON' : 'ONE TOOL. WHOLE PUBLISHING JOB.';
+  txt(o, sub, W / 2, H - (P ? 330 : 100) * U, fit(o, sub, W * 0.86, 70 * U, 'Bebas'), { font: 'Bebas', track: 4 * U, stroke: 6 * U });
+  return { rgb: 3 + 12 * punch(t), flash: (b === 4 ? 0.8 : 0.15) * punch(t, 8), shake: 6 * punch(t), hue: 0 };
+}
+function sScore(t) {
+  const lt = t - S(8), b = Math.floor(lt / BT);
+  o.fillStyle = '#05060a'; o.fillRect(0, 0, W, H);
+  o.save(); o.globalAlpha = 0.18; o.filter = 'blur(6px)'; cover(o, img['calendar'], 0, 0, W, H, 1.3, Math.sin(t) * 40 * U); o.restore();
+  const pw = W * 0.9, ph2 = (P ? 1250 : 840) * U, px = (W - pw) / 2, py = (H - ph2) / 2;
+  o.save(); o.strokeStyle = '#ffb000'; o.lineWidth = 6 * U; o.shadowColor = '#ff8a00'; o.shadowBlur = 30 * U;
+  o.strokeRect(px, py, pw, ph2); o.restore();
+  const amber = { font: 'Bebas', color: '#ffb000', glow: '#ff7a00' };
+  txt(o, 'BLOGGERLY', px + pw * 0.27, py + 90 * U, 80 * U, amber); txt(o, 'BLANK PAGE', px + pw * 0.73, py + 90 * U, 80 * U, { ...amber, color: '#7a5a20', glow: null });
+  const roll = (to, at) => Math.round(to * eo((lt - at) / 0.5));
+  txt(o, String(roll(99, 0.1)).padStart(2, '0'), px + pw * 0.27, py + (P ? 300 : 260) * U, 260 * U, amber);
+  txt(o, '00', px + pw * 0.73, py + (P ? 300 : 260) * U, 260 * U, { ...amber, color: '#5a4218', glow: null });
+  const stats = [['6', 'CHANNELS FROM ONE POST'], ['3', 'MONTHS SCHEDULED'], ['0', 'OPEN TABS']];
+  stats.forEach(([n, l], i) => {
+    if (b < 2 + i * 2) return;
+    const y = py + (P ? 620 + i * 210 : 470 + i * 125) * U, e = eob((lt - (2 + i * 2) * BT) / 0.3);
+    o.save(); o.globalAlpha = e;
+    txt(o, n, px + 90 * U + (1 - e) * 200 * U, y, (P ? 170 : 120) * U, { ...amber, align: 'left', color: '#fff', glow: '#fff' });
+    txt(o, l, px + (P ? 220 : 190) * U + (1 - e) * 200 * U, y, fit(o, l, pw * 0.72, (P ? 80 : 70) * U, 'Bebas'), { ...amber, align: 'left' });
+    o.restore();
+  });
+  txt(o, `Q4  00:${String(Math.max(0, 9 - b)).padStart(2, '0')}`, W / 2, py + ph2 - 50 * U, 60 * U, { ...amber, color: '#ff3b30', glow: '#f00' });
+  scanDots(o, 0.35);
+  return { rgb: 2 + 6 * punch(t), flash: 0.12 * punch(t, 10), shake: 3 * punch(t), hue: 0 };
+}
+function sStrobe(t) {
+  const lt = t - S(10), k = Math.floor(lt / (BT / 2)), q = ((lt / (BT / 2)) % 1);
+  const im = img[POSTERS[(k * 7 + 3) % POSTERS.length]];
+  o.fillStyle = '#000'; o.fillRect(0, 0, W, H);
+  o.save(); o.filter = `hue-rotate(${(k % 4) * 90 + t * 60}deg) saturate(${1.4 + (k % 2) * 0.6})`;
+  cover(o, im, 0, 0, W, H, 1.25 - 0.2 * eo(q * 2)); o.restore();
+  // grid of small posters bleeding at the edges
+  o.save(); o.globalAlpha = 0.5; o.globalCompositeOperation = 'screen';
+  for (let i = 0; i < 6; i++) { const pi = img[POSTERS[(k * 5 + i * 9) % POSTERS.length]]; const cw = 260 * U;
+    o.drawImage(pi, (i % 3) * W / 3 + Math.sin(t * 3 + i) * 30 * U, i < 3 ? -60 * U : H - cw * 1.25 + 60 * U, cw, cw * 1.25); }
+  o.restore();
+  o.fillStyle = 'rgba(0,0,0,.3)'; o.fillRect(0, 0, W, H);
+  const line = Math.floor(lt / (2 * BT)) % 2 ? 'EVERY CHANNEL.' : 'EVERY POST.';
+  txt(o, line, W / 2, H / 2, fit(o, line, W * 0.92, 220 * U) * (1 + 0.1 * punch(t)), { echo: 3, hue: t * 400, stroke: 14 * U });
+  return { rgb: 10 + 20 * Math.exp(-q * 6), flash: 0.35 * Math.exp(-q * 9), shake: 10 * Math.exp(-q * 6), hue: 0 };
+}
+const CH = ['WORDPRESS', 'LINKEDIN', 'X', 'SANITY', 'SUBSTACK', 'MEDIUM'];
+function sAssists(t) {
+  const lt = t - S(12), b = Math.floor(lt / BT);
+  tunnel(o, t, 330, 1.5, 1); o.fillStyle = 'rgba(0,0,0,.4)'; o.fillRect(0, 0, W, H);
+  const im = img['integrations_crop'], w = W * (P ? 0.94 : 0.7), h = w * im.height / im.width;
+  o.save(); o.translate(W / 2, H / 2 - (P ? 120 : 40) * U); o.scale(1 + 0.04 * punch(t), 1 + 0.04 * punch(t));
+  o.shadowColor = `hsl(${t * 200},100%,60%)`; o.shadowBlur = 90 * U; o.fillStyle = '#fff';
+  o.beginPath(); o.roundRect(-w / 2, -h / 2, w, h, 24 * U); o.fill(); o.shadowBlur = 0; o.clip(); o.drawImage(im, -w / 2, -h / 2, w, h); o.restore();
+  txt(o, 'ASSISTS', W / 2, (P ? 300 : 90) * U, 150 * U, { echo: 3, hue: t * 150, stroke: 12 * U, color: '#ffe600' });
+  const idx = Math.min(CH.length - 1, Math.max(0, b - 1));
+  if (b >= 1) txt(o, CH[idx], W / 2, H - (P ? 470 : 140) * U, fit(o, CH[idx], W * 0.9, 190 * U) * (1 + 0.15 * punch(t)), { echo: 2, hue: t * 300, stroke: 14 * U });
+  // flying post cards
+  for (let i = 0; i < 4; i++) { const c = img[i % 2 ? 'card_completed' : 'card_posted'], fl = ((lt * 0.6 + i * 0.25) % 1);
+    o.save(); o.globalAlpha = Math.sin(fl * Math.PI) * 0.9; o.translate(W * (i % 2 ? 0.85 : 0.15), H * (1.1 - fl * 1.2)); o.rotate((i % 2 ? 1 : -1) * 0.15);
+    o.drawImage(c, -150 * U, -125 * U, 300 * U, 250 * U); o.restore(); }
+  return { rgb: 3 + 12 * punch(t), flash: 0.25 * punch(t, 9), shake: 6 * punch(t), hue: 0 };
+}
+function sBuild(t) {
+  const lt = t - S(14), b = Math.floor(lt / BT);
+  o.fillStyle = '#000'; o.fillRect(0, 0, W, H);
+  o.save(); o.filter = `hue-rotate(${t * 240}deg) saturate(2)`; o.globalAlpha = 0.55 + 0.1 * b / 8;
+  kaleido(o, img[POSTERS[(b * 11) % POSTERS.length]], t, 12, 1.1 + lt * 0.25, t * (1 + lt)); o.restore();
+  o.fillStyle = 'rgba(0,0,0,.35)'; o.fillRect(0, 0, W, H);
+  const words = ["DON'T", 'JUST', 'DRAFT.'];
+  if (b < 3) txt(o, words[b], W / 2, H / 2, fit(o, words[b], W * 0.9, 330 * U) * (1 + 0.2 * punch(t)), { echo: 3, hue: t * 300, stroke: 16 * U });
+  else if (b < 6) { const z = 1 + (lt - 3 * BT) * 0.12; txt(o, 'PUBLISH.', W / 2, H / 2, fit(o, 'PUBLISH.', W * 0.78, 380 * U) * z * (1 + 0.15 * punch(t, 4)), { echo: 5, hue: t * 500, stroke: 18 * U, color: '#ffe600' }); }
+  else { const r = (lt - 6 * BT) / (2 * BT); txt(o, 'EVERYWHERE.', W / 2, H / 2, fit(o, 'EVERYWHERE.', W * 0.8, 300 * U) * (1 + r * 0.2), { echo: 6, hue: t * 700, stroke: 16 * U }); }
+  return { rgb: 6 + 20 * punch(t) + lt * 4, flash: (b === 3 ? 0.9 : 0.3) * punch(t, 7), shake: 8 + 10 * punch(t) + lt * 3, hue: 0 };
+}
+function sLogo(t) {
+  const lt = t - S(16);
+  o.fillStyle = '#000'; o.fillRect(0, 0, W, H);
+  // shockwave rings
+  for (let i = 0; i < 4; i++) { const r = (lt * 1.6 - i * 0.12) * Math.hypot(W, H) * 0.6; if (r <= 0) continue;
+    o.save(); o.globalAlpha = Math.max(0, 1 - lt * 0.7 - i * 0.15); o.strokeStyle = `hsl(${350 + i * 30},100%,60%)`; o.lineWidth = (30 - i * 6) * U;
+    o.beginPath(); o.arc(W / 2, H / 2, r, 0, 7); o.stroke(); o.restore(); }
+  o.save(); o.globalAlpha = 0.25; tunnel(o, t, 350, 0.3, 1); o.restore(); o.fillStyle = 'rgba(0,0,0,.6)'; o.fillRect(0, 0, W, H);
+  const e = eob(lt / 0.35), s = 230 * U * e;
+  o.save(); o.translate(W / 2, H / 2 - 90 * U); o.shadowColor = '#ff2040'; o.shadowBlur = 90 * U;
+  const g = o.createLinearGradient(-s / 2, -s / 2, s / 2, s / 2); g.addColorStop(0, '#ff3a50'); g.addColorStop(1, '#c4162a');
+  o.fillStyle = g; o.beginPath(); o.roundRect(-s / 2, -s / 2, s, s, s * 0.24); o.fill(); o.shadowBlur = 0;
+  o.fillStyle = '#fff'; o.font = `800 ${s * 0.66}px Inter`; o.textAlign = 'center'; o.textBaseline = 'middle'; o.fillText('B', 0, s * 0.03); o.restore();
+  const e2 = eo((lt - 0.3) / 0.5);
+  o.save(); o.globalAlpha = e2; o.font = `700 ${110 * U}px Inter`; o.textAlign = 'center'; o.textBaseline = 'middle';
+  o.fillStyle = '#fff'; o.fillText('bloggerly', W / 2 - 45 * U, H / 2 + 140 * U); const tw = o.measureText('bloggerly').width;
+  o.fillStyle = '#8b8b93'; o.textAlign = 'left'; o.fillText('.ai', W / 2 - 45 * U + tw / 2, H / 2 + 140 * U); o.restore();
+  const e3 = eo((lt - 0.8) / 0.5);
+  o.save(); o.globalAlpha = e3; txt(o, 'THE CONTENT MVP', W / 2, H / 2 + 260 * U, 70 * U, { font: 'Bebas', track: 10 * U, color: '#ffe600' }); o.restore();
+  const fade = cl((DUR - t) / 0.6);
+  return { rgb: 20 * Math.exp(-lt * 4), flash: Math.exp(-lt * 5), shake: 30 * Math.exp(-lt * 5), hue: 0, fade };
+}
+const SECTIONS = [[0, sIntro], [2, sLineup], [4, sKaleido], [6, sProduct], [8, sScore], [10, sStrobe], [12, sAssists], [14, sBuild], [16, sLogo]];
+
+function render(t) {
+  let fn = SECTIONS[0][1]; for (const [b, f] of SECTIONS) if (t >= S(b)) fn = f;
+  o.save(); const fx = fn(t); o.restore();
+  ctx.save(); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+  const sx = (rnd(Math.floor(t * 30)) - 0.5) * 2 * fx.shake * U, sy = (rnd(Math.floor(t * 30) + 9) - 0.5) * 2 * fx.shake * U;
+  ctx.translate(sx, sy);
+  const d = fx.rgb * U;
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.filter = 'url(#R)'; ctx.drawImage(off, -d, 0);
+  ctx.filter = 'url(#G)'; ctx.drawImage(off, 0, 0);
+  ctx.filter = 'url(#B)'; ctx.drawImage(off, d, 0);
+  ctx.restore();
+  if (fx.flash > 0.01) { ctx.fillStyle = `rgba(255,255,255,${Math.min(1, fx.flash)})`; ctx.fillRect(0, 0, W, H); }
+  // vignette + film grain feel
+  const v = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.35, W / 2, H / 2, Math.hypot(W, H) * 0.6);
+  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.55)'); ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+  if (fx.fade !== undefined && fx.fade < 1) { ctx.fillStyle = `rgba(0,0,0,${1 - fx.fade})`; ctx.fillRect(0, 0, W, H); }
+}
+window.render = render; window.DUR = DUR;
+window.ready.then(() => render(0));
+</script>
+</body></html>
