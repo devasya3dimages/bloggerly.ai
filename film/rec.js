@@ -6,7 +6,7 @@ const path = require('path');
   const [W, H, out, flag, list] = process.argv.slice(2);
   const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' }).catch(() => chromium.launch());
   const page = await browser.newPage({ viewport: { width: +W, height: +H } });
-  await page.goto('file://' + path.join(__dirname, 'film.html'));
+  await page.goto('file://' + path.join(__dirname, process.env.FILM || 'film.html'));
   await page.addStyleTag({ content: `:root{--W:${W}px;--H:${H}px}` });
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(300);

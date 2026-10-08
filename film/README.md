@@ -12,3 +12,15 @@ node rec.js 1080 1920 bloggerly-film-9x16.mp4   # vertical
 ```
 
 Needs Node with `playwright` and ffmpeg. Edit copy or timings in `film.html` and re-run.
+
+## v2: voice, music, faster (31 s)
+
+1. `audio/vo.py` writes one WAV per line with Kokoro (`pip install kokoro-onnx soundfile`, plus the
+   `kokoro.onnx` and `voices.bin` model files from the kokoro-onnx GitHub releases).
+   To use another voice tool (e.g. Voicebox), export the same lines as `audio/line0.wav` … `line9.wav`
+   and run `vo.json` through the same steps.
+2. `python3 retime.py` re-times `film.html` to the line lengths and writes `film_fast.html` + `timeline.json`.
+3. `cd audio && python3 mix.py` synthesises the 120 BPM music bed, lays the voice on the timeline,
+   ducks the music under it and writes `mix.wav` (needs `scipy`).
+4. `FILM=film_fast.html node rec.js 1080 1080 out.mp4`, then mux:
+   `ffmpeg -i out.mp4 -i audio/mix.wav -map 0:v -map 1:a -c:v copy -af loudnorm=I=-14:TP=-1.5 -c:a aac -shortest final.mp4`
