@@ -156,6 +156,7 @@ C.push(`<div class="slide C">${mast}
   <p style="top:940px;font:italic 400 44px NR">Save this post. Try it free at bloggerly.ai</p>${page(8)}</div>`);
 
 [['rowA', A], ['rowB', B], ['rowC', C]].forEach(([id, arr]) => { const r = document.getElementById(id); arr.forEach(h => r.appendChild($(h))); });
+{ const sc = document.createElement('script'); sc.src = 'reel.js'; document.body.append(sc); }
 window.ready = Promise.all([document.fonts.ready, ...[...document.images].map(i => i.complete ? 1 : new Promise(r => i.onload = i.onerror = r))]);
 </script>
 </body></html>

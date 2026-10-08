@@ -9,3 +9,8 @@ Three 8-slide 4:5 (1080×1350) carousels for bloggerly.ai, each modelled on a re
 | `system/` | T-003 Matt Gray (editorial paper, worksheet slide as save trigger) | Your blog isn't a writing problem. It's a system problem. |
 
 Edit the copy in `posts.html`, then run `node shoot.js` (Playwright) to re-export PNGs to `rules/`, `engine/` and `system/`.
+
+## Reels
+
+`posts.html#reel=rules|engine|system` turns each carousel into a 9:16 Reel. Elements animate in, slides change on the beat, and each Reel has its own original track (`music_reels.py`).
+`node rec_reel.js rules out.mp4`. The rendered Reels are in `reels/`.
