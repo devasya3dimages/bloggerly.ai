@@ -183,6 +183,8 @@ def render_shot(args):
     path = os.path.join(src_dir, shot["file"])
     if not os.path.exists(path):
         return f"skip {shot['file']} (missing)"
+    if all(os.path.exists(os.path.join(out_dir, k, name + ".mp4")) for k in ("feed", "reels")):
+        return f"skip {name} (already rendered)"
     seed = sum(map(ord, name))
     rng = np.random.default_rng(seed)
 
